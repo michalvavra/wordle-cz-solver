@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Wordle.cz Solver</title>
+    <meta name="description" content="Řešič pro českou verzi hry Wordle">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kelpui@0/css/kelp.css">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <main class="container-xl">
+        <h1>Wordle.cz Solver</h1>
+        <p>Pomůže vám najít správné slovo pro hru <a href="https://www.wordle.cz">Wordle.cz</a>.</p>
+        
+        <section class="stack gap-m margin-start-l">
+            <form class="stack gap-m">
+                <div class="sidecar-end gap-s align-end">
+                    <div>
+                        <label for="word-input">Zadejte slovo (5 písmen)</label>
+                        <div id="word-input-help" class="visually-hidden">Zadejte české 5písmenné slovo</div>
+                        <input 
+                            type="text"
+                            id="word-input" 
+                            placeholder="Např. OPERA"
+                            maxlength="5"
+                            pattern="[a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{5}"
+                            required
+                            aria-describedby="word-input-help"
+                            class="uppercase-input"
+                        />
+                    </div>
+                    <button type="button" class="primary" id="add-word-btn">
+                        Přidat slovo
+                    </button>
+                </div>
+
+                <div class="grid-m gap-xl">
+                    <div>
+                        <wordle-grid id="wordle-grid"></wordle-grid>
+                    </div>
+                    <div class="suggestions-panel hidden" id="suggestions" aria-live="polite">
+                        <h3>Možná slova</h3>
+                        <div class="suggestion-container" id="suggestion-list">
+                            <p>Přidejte slovo pro zobrazení návrhů</p>
+                        </div>
+                        <button type="button" class="outline primary hidden margin-start-s" id="show-more-btn" aria-label="Zobrazit další návrhy slov">
+                            Zobrazit více
+                        </button>
+                    </div>
+                </div>
+                
+            </form>
+                
+        </section>
+        
+        <hr class="margin-start-xl margin-end-l">
+        
+        <h2>Potřebujete pomoc?</h2>
+        
+        <details name="help-section">
+            <summary><strong>Jak používat</strong></summary>
+            <ul>
+                <li>Zadejte 5písmenné slovo a klikněte "Přidat slovo"</li>
+                <li>Klikejte na jednotlivá písmena pro změnu barvy podle výsledku z Wordle</li>
+                <li>Možná slova se zobrazí automaticky při přidání slov</li>
+                <li>Můžete přidat až 6 pokusů (jako v originální hře)</li>
+                <li>Diakritika se ignoruje (stejně jako ve hře Wordle.cz)</li>
+            </ul>
+        </details>
+        
+        <details name="help-section">
+            <summary><strong>Význam barev</strong></summary>
+            <div class="stack gap-s">
+                <div class="sidecar gap-s align-center">
+                    <div class="color-box" style="background-color: var(--wordle-gray);"></div>
+                    <span><strong>Šedá:</strong> Písmeno není ve slově vůbec</span>
+                </div>
+                <div class="sidecar gap-s align-center">
+                    <div class="color-box" style="background-color: var(--wordle-orange);"></div>
+                    <span><strong>Oranžová:</strong> Písmeno je ve slově, ale na jiné pozici</span>
+                </div>
+                <div class="sidecar gap-s align-center">
+                    <div class="color-box" style="background-color: var(--wordle-blue);"></div>
+                    <span><strong>Modrá:</strong> Písmeno je na správné pozici a vyskytuje se i jinde</span>
+                </div>
+                <div class="sidecar gap-s align-center">
+                    <div class="color-box" style="background-color: var(--wordle-green);"></div>
+                    <span><strong>Zelená:</strong> Písmeno je na správné pozici a nikde jinde se nevyskytuje</span>
+                </div>
+            </div>
+        </details>
+    </main>
+
+    <hr class="margin-start-xl margin-end-xl">
+    
+    <footer class="container-xl margin-end-l">
+        <p style="text-align: center;">Vytvořeno pomocí <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a> a <a href="https://kelpui.com" target="_blank" rel="noopener">Kelp</a>. Zdrojový kód je na <a href="https://github.com/michalvavra/wordle-cz-solver" target="_blank" rel="noopener">GitHubu</a>.</p>
+    </footer>
+
+    <script type="module" src="./js/app.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/kelpui@0/js/kelp.js"></script>
+</body>
+</html>

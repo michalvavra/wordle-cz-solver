@@ -1,0 +1,79 @@
+/* Wordle color scheme */
+:root {
+    --wordle-gray: oklch(50% 0.02 0);
+    --wordle-orange: oklch(70% 0.15 45);
+    --wordle-blue: oklch(60% 0.15 220);
+    --wordle-green: oklch(65% 0.15 150);
+}
+
+/* Utilities */
+.hidden {
+    display: none;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.uppercase-input {
+    text-transform: uppercase;
+}
+
+
+/* Color legend */
+.color-box {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+}
+
+/* Custom grid layout for game */
+.grid-m.gap-xl {
+    grid-template-columns: auto 1fr;
+}
+
+@media (max-width: 31.999em) {
+    .grid-m.gap-xl {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Suggestions panel */
+.suggestions-panel {
+    width: 100%;
+    min-width: 0; /* Prevent grid blowout */
+    overflow: hidden;
+}
+
+
+/* Suggestion container with grid layout */
+.suggestion-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: var(--gap-xs);
+    width: 100%;
+}
+
+/* Ensure full width for grid items */
+.suggestion-container suggestion-item {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* Empty state styling */
+.suggestion-container > p {
+    color: var(--gray-600);
+    font-style: italic;
+    grid-column: 1 / -1;
+    text-align: center;
+}
