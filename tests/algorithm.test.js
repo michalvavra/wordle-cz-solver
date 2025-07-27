@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { filterWords, normalizeCzechText } from './js/algorithm.js';
+import { filterWords, normalizeCzechText } from '../js/algorithm.js';
 
 // Mock word list for testing (normalized as the algorithm now stores them)
 const testWords = [
@@ -349,7 +349,7 @@ test('should handle letter appearing as both gray and green/orange in same word'
 
 test('should verify SRNKA is in loaded word list', async () => {
     // Test that SRNKA is actually in the words.txt file when loaded
-    const { parseWordsFromContent } = await import('./js/algorithm.js');
+    const { parseWordsFromContent } = await import('../js/algorithm.js');
     const { readFileSync } = await import('fs');
     
     const content = readFileSync('./words.txt', 'utf-8').trim();

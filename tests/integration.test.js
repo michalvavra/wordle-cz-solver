@@ -3,7 +3,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { WordleSolver } from './js/solver.js';
+import { WordleSolver } from '../js/solver.js';
 
 test('Integration: solver should work with optimized algorithm', async () => {
     const solver = new WordleSolver();

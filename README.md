@@ -37,5 +37,7 @@ The Czech word list (`words.txt`) contains 2,863 five-letter words extracted fro
 ### Testing
 
 ```bash
-node algorithm.test.js
+node tests/algorithm.test.js
+node tests/integration.test.js
+node tests/wordle-scenarios.test.js
 ```

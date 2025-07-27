@@ -43,14 +43,20 @@ Use [Conventional Commits](https://conventionalcommits.org/):
 
 ### Testing
 ```bash
-node algorithm.test.js  # Core algorithm tests
+# Run all tests
+node tests/algorithm.test.js && node tests/integration.test.js && node tests/wordle-scenarios.test.js
+
+# Run specific test files
+node tests/algorithm.test.js         # Core algorithm tests
+node tests/integration.test.js       # Integration tests
+node tests/wordle-scenarios.test.js  # Scenario tests (edit this file to add real scenarios)
 ```
 
 ## Common Tasks
 
 ### Adding Features
 1. Update relevant component/module
-2. Add tests if algorithm changes
+2. Add tests to `tests/` directory if algorithm changes
 3. Update help section if user-facing
 4. Use KelpUI classes for styling
 
