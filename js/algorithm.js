@@ -180,11 +180,6 @@ export function* filterWordsGenerator(wordMetadata, constraints) {
  * Filters words based on constraints (returns array)
  */
 export function filterWords(wordMetadata, constraints) {
-    // Handle both old format (strings) and new format (metadata)
-    if (wordMetadata.length > 0 && typeof wordMetadata[0] === 'string') {
-        wordMetadata = wordMetadata.map(word => createWordMetadata(word));
-    }
-    
     return Array.from(filterWordsGenerator(wordMetadata, constraints));
 }
 

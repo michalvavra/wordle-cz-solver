@@ -5,12 +5,27 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { filterWords, normalizeCzechText } from '../js/algorithm.js';
 
+// Helper to create word metadata
+function createWordMetadata(word) {
+    const chars = [...word];
+    const letterCounts = {};
+    
+    for (const letter of chars) {
+        letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+    }
+    
+    return { word, chars, letterCounts };
+}
+
 // Mock word list for testing (normalized as the algorithm now stores them)
-const testWords = [
+const testWordsStrings = [
     'krava', 'plast', 'rycht', 'divka',
     'slovo', 'opera', 'parek', 'mesto',
     'blond', 'cerny', 'zeleny', 'modry'
 ];
+
+// Convert to metadata format
+const testWords = testWordsStrings.map(word => createWordMetadata(word));
 
 
 // Test suite for word filtering algorithm
@@ -119,7 +134,7 @@ test('should handle empty constraints (return all words)', () => {
     };
     
     const result = filterWords(testWords, constraints);
-    assert.deepStrictEqual(result, testWords, 'Should return all words with no constraints');
+    assert.deepStrictEqual(result, testWordsStrings, 'Should return all words with no constraints');
 });
 
 test('should handle multiple green letters', () => {
@@ -179,6 +194,7 @@ test('should handle diacritics in green constraints', () => {
     // Test with Czech words that have diacritics
     const wordsWithDiacritics = ['kráva', 'černé', 'město'];
     const normalizedWords = wordsWithDiacritics.map(w => normalizeCzechText(w));
+    const normalizedWordMetadata = normalizedWords.map(w => createWordMetadata(w));
     
     const constraints = {
         green: { 0: 'č' }, // Input with diacritic
@@ -187,7 +203,7 @@ test('should handle diacritics in green constraints', () => {
         gray: new Set()
     };
     
-    const result = filterWords(normalizedWords, constraints);
+    const result = filterWords(normalizedWordMetadata, constraints);
     const expected = ['cerne']; // normalized result
     
     assert.deepStrictEqual(result, expected, 'Should handle diacritics in green constraints');
@@ -196,6 +212,7 @@ test('should handle diacritics in green constraints', () => {
 test('should handle diacritics in orange constraints', () => {
     const wordsWithDiacritics = ['kráva', 'černé', 'město', 'světe'];
     const normalizedWords = wordsWithDiacritics.map(w => normalizeCzechText(w));
+    const normalizedWordMetadata = normalizedWords.map(w => createWordMetadata(w));
     
     const constraints = {
         green: {},
@@ -204,7 +221,7 @@ test('should handle diacritics in orange constraints', () => {
         gray: new Set()
     };
     
-    const result = filterWords(normalizedWords, constraints);
+    const result = filterWords(normalizedWordMetadata, constraints);
     const expected = ['cerne', 'mesto']; // both have 'e' (normalized ě) but not at position 2
     
     assert.deepStrictEqual(result, expected, 'Should handle diacritics in orange constraints');
@@ -213,6 +230,7 @@ test('should handle diacritics in orange constraints', () => {
 test('should handle diacritics in gray constraints', () => {
     const wordsWithDiacritics = ['kráva', 'černé', 'město'];
     const normalizedWords = wordsWithDiacritics.map(w => normalizeCzechText(w));
+    const normalizedWordMetadata = normalizedWords.map(w => createWordMetadata(w));
     
     const constraints = {
         green: {},
@@ -221,7 +239,7 @@ test('should handle diacritics in gray constraints', () => {
         gray: new Set(['č']) // Words containing č should be filtered out
     };
     
-    const result = filterWords(normalizedWords, constraints);
+    const result = filterWords(normalizedWordMetadata, constraints);
     const expected = ['krava', 'mesto']; // černé filtered out because it contains č
     
     assert.deepStrictEqual(result, expected, 'Should handle diacritics in gray constraints');
@@ -230,6 +248,7 @@ test('should handle diacritics in gray constraints', () => {
 test('should handle complex diacritic combinations', () => {
     const wordsWithDiacritics = ['žrout'];
     const normalizedWords = wordsWithDiacritics.map(w => normalizeCzechText(w));
+    const normalizedWordMetadata = normalizedWords.map(w => createWordMetadata(w));
     
     const constraints = {
         green: { 0: 'ž' }, // Input with diacritic 
@@ -238,7 +257,7 @@ test('should handle complex diacritic combinations', () => {
         gray: new Set(['x'])
     };
     
-    const result = filterWords(normalizedWords, constraints);
+    const result = filterWords(normalizedWordMetadata, constraints);
     const expected = []; // žrout has r at position 1, so should be filtered out
     
     assert.deepStrictEqual(result, expected, 'Should handle complex diacritic combinations');
@@ -271,7 +290,8 @@ test('should normalize all Czech diacritics', () => {
 
 test('should handle real Wordle scenario: PISEK -> SKARA -> SRNKA', () => {
     // Test words including the solution
-    const testWords = ['srnka', 'pisek', 'skara', 'slova', 'sport'];
+    const testWordsStrings = ['srnka', 'pisek', 'skara', 'slova', 'sport'];
+    const testWords = testWordsStrings.map(w => createWordMetadata(w));
     
     // After first word PISEK with S and K orange, P/I/E gray
     const constraintsAfterPisek = {
@@ -324,7 +344,8 @@ test('should handle letter appearing as both gray and green/orange in same word'
     // - A at position 2 marked gray
     // - A at position 4 marked green
     // This means A appears exactly once at position 4
-    const testWords = ['srnka', 'skara', 'slova', 'sport', 'stara'];
+    const testWordsStrings = ['srnka', 'skara', 'slova', 'sport', 'stara'];
+    const testWords = testWordsStrings.map(w => createWordMetadata(w));
     
     const constraints = {
         green: { 0: 's', 4: 'a' }, // S at pos 0, A at pos 4
@@ -356,7 +377,7 @@ test('should verify SRNKA is in loaded word list', async () => {
     const wordData = parseWordsFromContent(content);
     
     // Extract words from metadata objects
-    const words = wordData.map(item => typeof item === 'string' ? item : item.word);
+    const words = wordData.map(item => item.word);
     
     assert.ok(words.includes('srnka'), 'SRNKA should be in the loaded word list');
     
