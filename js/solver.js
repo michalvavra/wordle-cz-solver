@@ -1,41 +1,63 @@
 // Solver logic for Wordle.cz
-import { filterWords, loadWordsFromFile } from './algorithm.js';
+import { filterWords, loadWordsFromFile, getSuggestions } from './algorithm.js';
 
 export class WordleSolver {
     constructor(words = null) {
-        this.words = words || [];
+        this.wordMetadata = words || [];
         this.wordsPromise = words ? Promise.resolve(words) : this.loadWords();
     }
 
     /**
      * Load words asynchronously
-     * @returns {Promise<Array>} Promise that resolves to words array
      */
     async loadWords() {
         try {
-            this.words = await loadWordsFromFile();
-            return this.words;
+            this.wordMetadata = await loadWordsFromFile();
+            return this.wordMetadata;
         } catch (error) {
             console.error('Failed to load words:', error);
-            this.words = [];
-            return this.words;
+            this.wordMetadata = [];
+            return this.wordMetadata;
         }
     }
 
     /**
-     * Filter words based on constraints - now uses the tested algorithm
-     * @param {Object} constraints - Object containing green, blue, orange, and gray constraints
-     * @returns {Promise<Array>} Promise that resolves to filtered array of possible words
+     * Filter words based on constraints
      */
     async filterWords(constraints) {
-        await this.wordsPromise; // Ensure words are loaded
-        return filterWords(this.words, constraints);
+        await this.wordsPromise;
+        return filterWords(this.wordMetadata, constraints);
+    }
+
+    /**
+     * Get best word suggestions
+     */
+    async getSuggestions(constraints, limit = 10) {
+        await this.wordsPromise;
+        const suggestions = getSuggestions(this.wordMetadata, constraints, limit);
+        
+        // Validate suggestions are 5 letters (safety check)
+        return suggestions.filter(word => {
+            if (word.length !== 5) {
+                console.warn(`Invalid suggestion: "${word}"`);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Check if a word exists in the database
+     */
+    async wordExists(word) {
+        await this.wordsPromise;
+        const normalized = word.toLowerCase();
+        return this.wordMetadata.some(meta => meta.word === normalized);
     }
 
     /**
      * Score words based on letter frequency
-     * @param {Array} words - Array of words to score
-     * @returns {Array} Sorted array of words with scores
+     * @deprecated Use getSuggestions instead
      */
     scoreWords(words) {
         // Calculate letter frequency
@@ -57,32 +79,5 @@ export class WordleSolver {
 
         // Sort by score (highest first)
         return scoredWords.sort((a, b) => b.score - a.score);
-    }
-
-    /**
-     * Get best word suggestions
-     * @param {Object} constraints - Filtering constraints
-     * @param {number} limit - Maximum number of suggestions
-     * @returns {Promise<Array>} Promise that resolves to array of suggested words
-     */
-    async getSuggestions(constraints, limit = 10) {
-        const filtered = await this.filterWords(constraints);
-        const scored = this.scoreWords(filtered);
-        const suggestions = scored.slice(0, limit).map(item => item.word);
-        
-        // Validation: ensure all suggestions are 5 letters
-        const validSuggestions = suggestions.filter(word => {
-            if (word.length !== 5) {
-                console.warn(`Invalid suggestion length: "${word}" (${word.length} chars)`);
-                return false;
-            }
-            return true;
-        });
-        
-        if (validSuggestions.length !== suggestions.length) {
-            console.warn(`Filtered out ${suggestions.length - validSuggestions.length} invalid suggestions`);
-        }
-        
-        return validSuggestions;
     }
 }

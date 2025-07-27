@@ -137,9 +137,7 @@ export class WordleUI {
         
         // Check if word exists in database
         if (this.solver) {
-            await this.solver.wordsPromise; // Ensure words are loaded
-            const normalizedWord = normalizeCzechText(word);
-            const wordExists = this.solver.words.includes(normalizedWord);
+            const wordExists = await this.solver.wordExists(word);
             
             if (!wordExists) {
                 this.wordInput.setCustomValidity('Toto slovo není ve slovníku Wordle.cz');

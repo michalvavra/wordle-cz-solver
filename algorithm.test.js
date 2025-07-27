@@ -353,7 +353,10 @@ test('should verify SRNKA is in loaded word list', async () => {
     const { readFileSync } = await import('fs');
     
     const content = readFileSync('./words.txt', 'utf-8').trim();
-    const words = parseWordsFromContent(content);
+    const wordData = parseWordsFromContent(content);
+    
+    // Extract words from metadata objects
+    const words = wordData.map(item => typeof item === 'string' ? item : item.word);
     
     assert.ok(words.includes('srnka'), 'SRNKA should be in the loaded word list');
     
