@@ -30,6 +30,9 @@ export class WordleUI {
         document.addEventListener('suggestion-select', (e) => {
             this.wordInput.value = e.detail.word;
             this.wordInput.focus();
+            
+            // Auto-set green letters based on existing constraints
+            this.#autoSetGreenLetters(e.detail.word);
         });
 
         // Clear custom validity when user starts typing
@@ -57,7 +60,14 @@ export class WordleUI {
         }
 
         try {
-            this.grid.addWord(word);
+            const wordRow = this.grid.addWord(word);
+            
+            // Apply pending green positions if any
+            if (this.pendingGreenPositions && Object.keys(this.pendingGreenPositions).length > 0) {
+                this.#applyPendingGreenPositions(wordRow);
+                this.pendingGreenPositions = null; // Clear after applying
+            }
+            
             return true;
         } catch (error) {
             this.wordInput.setCustomValidity(error.message);
@@ -154,5 +164,62 @@ export class WordleUI {
      */
     showSuggestionsPanel() {
         this.suggestionsSection.classList.remove('hidden');
+    }
+    
+    /**
+     * Auto-set green letters when clicking a suggestion based on existing green constraints
+     * @param {string} suggestionWord - The clicked suggestion word
+     */
+    #autoSetGreenLetters(suggestionWord) {
+        // Get current constraints to find existing green letters
+        const constraints = this.getConstraints();
+        const normalizedSuggestion = normalizeCzechText(suggestionWord.toLowerCase());
+        
+        // If there are no green constraints, nothing to auto-set
+        if (Object.keys(constraints.green).length === 0) {
+            return;
+        }
+        
+        // Store positions that should be green when the word is added
+        this.pendingGreenPositions = {};
+        
+        // Check each green constraint
+        Object.entries(constraints.green).forEach(([position, letter]) => {
+            const pos = parseInt(position);
+            const suggestionLetter = normalizedSuggestion[pos];
+            
+            // If the suggestion has the same letter at the same position, mark it for auto-green
+            if (suggestionLetter === letter.toLowerCase()) {
+                this.pendingGreenPositions[pos] = letter;
+            }
+        });
+    }
+    
+    /**
+     * Apply pending green positions to the newly added word row
+     * @param {WordRow} wordRow - The word row element
+     */
+    #applyPendingGreenPositions(wordRow) {
+        const letterBoxes = wordRow.getLetterBoxes();
+        
+        Object.entries(this.pendingGreenPositions).forEach(([position, letter]) => {
+            const pos = parseInt(position);
+            const letterBox = letterBoxes[pos];
+            
+            if (letterBox) {
+                // Set the letter box to green state (state 3 = green)
+                letterBox.setAttribute('state', '3');
+                
+                // Dispatch state change event to maintain consistency
+                letterBox.dispatchEvent(new CustomEvent('state-change', {
+                    detail: {
+                        letter: letterBox.letter,
+                        state: 'green',
+                        col: pos
+                    },
+                    bubbles: true
+                }));
+            }
+        });
     }
 }
