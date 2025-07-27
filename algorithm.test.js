@@ -268,3 +268,96 @@ test('should normalize all Czech diacritics', () => {
                           `Should normalize ${input} to ${expected}`);
     });
 });
+
+test('should handle real Wordle scenario: PISEK -> SKARA -> SRNKA', () => {
+    // Test words including the solution
+    const testWords = ['srnka', 'pisek', 'skara', 'slova', 'sport'];
+    
+    // After first word PISEK with S and K orange, P/I/E gray
+    const constraintsAfterPisek = {
+        green: {},
+        blue: {},
+        orange: { 's': [1], 'k': [4] }, // S not at pos 1, K not at pos 4
+        gray: new Set(['p', 'i', 'e'])
+    };
+    
+    const resultAfterPisek = filterWords(testWords, constraintsAfterPisek);
+    assert.ok(resultAfterPisek.includes('srnka'), 'SRNKA should be suggested after PISEK');
+    
+    // After second word SKARA with S green (pos 0), A green (pos 4), K/R orange, middle A gray
+    const constraintsAfterSkara = {
+        green: { 0: 's', 4: 'a' }, // S at pos 0, A at pos 4
+        blue: {},
+        orange: { 'k': [1, 4], 'r': [3] }, // K not at pos 1 or 4, R not at pos 3
+        gray: new Set(['p', 'i', 'e', 'a']) // P/I/E from first word, A from middle position
+    };
+    
+    const resultAfterSkara = filterWords(testWords, constraintsAfterSkara);
+    assert.ok(resultAfterSkara.includes('srnka'), 'SRNKA should be suggested after SKARA');
+    
+    // Verify SRNKA matches all constraints
+    const srnka = 'srnka';
+    
+    // Check green constraints
+    assert.strictEqual(srnka[0], 's', 'SRNKA should have S at position 0');
+    assert.strictEqual(srnka[4], 'a', 'SRNKA should have A at position 4');
+    
+    // Check orange constraints - letters should be in word but not at specified positions
+    assert.ok(srnka.includes('k'), 'SRNKA should contain K');
+    assert.ok(srnka[1] !== 'k' && srnka[4] !== 'k', 'SRNKA should not have K at positions 1 or 4');
+    assert.ok(srnka.includes('r'), 'SRNKA should contain R');
+    assert.ok(srnka[3] !== 'r', 'SRNKA should not have R at position 3');
+    
+    // Check gray constraints - letters should not be in word
+    assert.ok(!srnka.includes('p'), 'SRNKA should not contain P');
+    assert.ok(!srnka.includes('i'), 'SRNKA should not contain I');
+    assert.ok(!srnka.includes('e'), 'SRNKA should not contain E');
+    
+    // Special case: A is both green (pos 4) and gray (other positions)
+    // This means A appears exactly once at position 4
+    const aCount = (srnka.match(/a/g) || []).length;
+    assert.strictEqual(aCount, 1, 'SRNKA should have exactly one A (at position 4)');
+});
+
+test('should handle letter appearing as both gray and green/orange in same word', () => {
+    // Test the specific UI scenario where SKARA has:
+    // - A at position 2 marked gray
+    // - A at position 4 marked green
+    // This means A appears exactly once at position 4
+    const testWords = ['srnka', 'skara', 'slova', 'sport', 'stara'];
+    
+    const constraints = {
+        green: { 0: 's', 4: 'a' }, // S at pos 0, A at pos 4
+        blue: {},
+        orange: { 'k': [1], 'r': [3] }, // K not at pos 1, R not at pos 3
+        gray: new Set(['p', 'i', 'e', 'a']) // Including A in gray!
+    };
+    
+    const result = filterWords(testWords, constraints);
+    
+    // SRNKA should be included because:
+    // - Has S at position 0 (green)
+    // - Has A at position 4 (green)
+    // - Has K (orange, not at position 1)
+    // - Has R (orange, not at position 3)
+    // - Has only one A (at position 4)
+    assert.ok(result.includes('srnka'), 'SRNKA should be suggested even with A in gray set');
+    
+    // STARA should be excluded because it has two A's
+    assert.ok(!result.includes('stara'), 'STARA should be excluded (has two As)');
+});
+
+test('should verify SRNKA is in loaded word list', async () => {
+    // Test that SRNKA is actually in the words.txt file when loaded
+    const { parseWordsFromContent } = await import('./js/algorithm.js');
+    const { readFileSync } = await import('fs');
+    
+    const content = readFileSync('./words.txt', 'utf-8').trim();
+    const words = parseWordsFromContent(content);
+    
+    assert.ok(words.includes('srnka'), 'SRNKA should be in the loaded word list');
+    
+    // Also verify other test words
+    assert.ok(words.includes('pisek'), 'PISEK should be in the loaded word list');
+    assert.ok(words.includes('skara'), 'SKARA should be in the loaded word list');
+});

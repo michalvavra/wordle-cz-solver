@@ -144,10 +144,38 @@ export function filterWords(words, constraints) {
             }
         }
         
-        // Check gray letters (not in word at all)
+        // Check gray letters
         for (const letter of normalizedConstraints.gray) {
-            if (chars.includes(letter)) {
-                return false;
+            const isInGreen = Object.values(normalizedConstraints.green).includes(letter);
+            const isInOrange = Object.keys(normalizedConstraints.orange).includes(letter);
+            const isInBlue = Object.values(normalizedConstraints.blue).includes(letter);
+            
+            if (!isInGreen && !isInOrange && !isInBlue) {
+                // Letter is only gray - it shouldn't appear in the word at all
+                if (chars.includes(letter)) {
+                    return false;
+                }
+            } else {
+                // Letter is gray AND also green/orange/blue
+                // This means the letter appears ONLY in the green/orange/blue positions
+                // Count how many times the letter appears in green/blue positions
+                let requiredCount = 0;
+                for (const [pos, greenLetter] of Object.entries(normalizedConstraints.green)) {
+                    if (greenLetter === letter) requiredCount++;
+                }
+                for (const [pos, blueLetter] of Object.entries(normalizedConstraints.blue)) {
+                    if (blueLetter === letter) requiredCount++;
+                }
+                // For orange, we know it appears at least once
+                if (isInOrange) requiredCount = Math.max(requiredCount, 1);
+                
+                // Count actual occurrences in the word
+                const actualCount = chars.filter(c => c === letter).length;
+                
+                // The word should have exactly the required count
+                if (actualCount !== requiredCount) {
+                    return false;
+                }
             }
         }
         
