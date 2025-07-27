@@ -2,6 +2,8 @@
 
 Web-based solver for the Czech version of [Wordle.cz](https://www.wordle.cz). Helps you find possible words based on your guesses.
 
+![Wordle.cz Solver Screenshot](screenshot.png)
+
 ## Features
 
 - **Interactive Grid**: Click letters to set colors based on Wordle feedback
