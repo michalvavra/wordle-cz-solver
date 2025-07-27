@@ -224,14 +224,13 @@ class SuggestionItem extends HTMLElement {
                 }
                 
                 :host(:hover) {
-                    background-color: var(--gray-150, #f1f1f1);
-                    border-color: var(--gray-300);
-                    transform: translateY(-1px);
+                    background-color: var(--blue-50, #f0f9ff);
+                    border-color: var(--blue-200, #bfdbfe);
                 }
                 
                 :host(:active) {
-                    background-color: var(--gray-250, #e5e5e5);
-                    transform: translateY(0);
+                    background-color: var(--blue-100, #dbeafe);
+                    border-color: var(--blue-300, #93c5fd);
                 }
             </style>
             <slot></slot>
