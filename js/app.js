@@ -11,6 +11,15 @@ class WordleApp {
         this.initEventListeners();
         // Pass solver to UI for word validation
         this.ui.setSolver(this.solver);
+        // Initialize the app after solver is ready
+        this.initialize();
+    }
+    
+    async initialize() {
+        // Wait for solver to load words
+        await this.solver.wordsPromise;
+        // Restore state from URL if present (now that solver is ready)
+        this.ui.restoreFromURL();
     }
 
     initEventListeners() {
@@ -30,7 +39,14 @@ class WordleApp {
 
 
         // Letter state changes - automatically solve when letter colors change
-        document.addEventListener('state-change', () => this.handleSolve());
+        document.addEventListener('state-change', () => {
+            this.handleSolve();
+        });
+        
+        // Solver update needed event (e.g., when restoring from URL)
+        document.addEventListener('solver-update-needed', () => {
+            this.handleSolve();
+        });
 
         // Focus input on load
         wordInput.focus();

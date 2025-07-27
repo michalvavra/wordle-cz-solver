@@ -7,6 +7,7 @@ Web-based solver for the Czech version of [Wordle.cz](https://www.wordle.cz). He
 - **Interactive Grid**: Click letters to set colors based on Wordle feedback
 - **Smart Filtering**: Uses 2,863 Czech words with diacritic normalization
 - **Automatic Solving**: Shows suggestions as you add words
+- **URL Sharing**: Game state automatically saved in URL for easy sharing
 - **Mobile-Friendly**: Built with [KelpUI](https://kelpui.com) for responsive design
 - **No Build Tools**: Pure HTML/CSS/JavaScript
 
@@ -26,6 +27,22 @@ The Czech word list (`words.txt`) contains 2,863 five-letter words extracted fro
 4. View suggestions in "Možná slova" section
 
 ## Development
+
+### Local Development
+
+For development, serve the files using a local HTTP server (required for ES modules):
+
+```bash
+# Install serve globally
+npm install -g serve
+
+# Run development server
+serve
+
+# Open http://localhost:3000 in your browser
+```
+
+Alternatively, you can use any other static file server like Python's `http.server` or Live Server in VS Code.
 
 ### Technologies
 
