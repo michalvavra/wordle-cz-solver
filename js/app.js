@@ -1,6 +1,7 @@
 // Main application file
 import { WordleSolver } from './solver.js';
 import { WordleUI } from './ui.js';
+import { normalizeCzechText } from './algorithm.js';
 import './components.js';
 
 // Initialize application
@@ -54,13 +55,16 @@ class WordleApp {
 
     async handleAddWord() {
         try {
-            const word = this.ui.wordInput.value.trim().toUpperCase();
+            const inputWord = this.ui.wordInput.value.trim().toUpperCase();
             
-            if (!await this.ui.validateWord(word)) {
+            if (!await this.ui.validateWord(inputWord)) {
                 return;
             }
+            
+            // Normalize the word to remove diacritics before adding to grid
+            const normalizedWord = normalizeCzechText(inputWord).toUpperCase();
 
-            if (this.ui.addWord(word)) {
+            if (this.ui.addWord(normalizedWord)) {
                 this.ui.wordInput.value = '';
                 this.ui.wordInput.focus();
                 // Show suggestions panel when first word is added

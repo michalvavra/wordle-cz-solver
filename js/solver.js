@@ -1,5 +1,5 @@
 // Solver logic for Wordle.cz
-import { filterWords, loadWordsFromFile, getSuggestions } from './algorithm.js';
+import { filterWords, loadWordsFromFile, getSuggestions, normalizeCzechText } from './algorithm.js';
 
 export class WordleSolver {
     constructor(words = null) {
@@ -51,7 +51,7 @@ export class WordleSolver {
      */
     async wordExists(word) {
         await this.wordsPromise;
-        const normalized = word.toLowerCase();
+        const normalized = normalizeCzechText(word);
         return this.wordMetadata.some(meta => meta.word === normalized);
     }
 
