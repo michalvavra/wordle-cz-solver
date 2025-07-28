@@ -1,4 +1,4 @@
-// Validation utilities for Wordle solver
+// Validation utilities for Wordle.cz solver
 import { normalizeCzechText } from './algorithm.js';
 
 /**
@@ -39,7 +39,7 @@ export async function validateWordInput(word, solver = null) {
 }
 
 /**
- * Validates green letter constraints for Wordle rules
+ * Validates green letter constraints for Wordle.cz rules
  * Ensures no conflicts: same letter can't be green at different positions
  * @param {NodeList} wordRows - Collection of word-row elements
  * @returns {Object} Validation result with isValid flag and conflictInfo

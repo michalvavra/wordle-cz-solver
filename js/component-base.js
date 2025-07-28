@@ -1,7 +1,7 @@
 // Base class for Web Components with common functionality
 
 /**
- * Base class for Wordle components with common shadow DOM patterns
+ * Base class for Wordle.cz components with common shadow DOM patterns
  */
 export class WordleComponentBase extends HTMLElement {
     constructor() {

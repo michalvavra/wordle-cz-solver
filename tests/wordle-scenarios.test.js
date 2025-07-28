@@ -1,4 +1,4 @@
-// Real-world Wordle scenario tests
+// Real-world Wordle.cz scenario tests
 // Run with: node --test wordle-scenarios.test.js
 
 import { test } from 'node:test';
@@ -11,7 +11,7 @@ const content = readFileSync('./words.txt', 'utf-8').trim();
 const wordDatabase = parseWordsFromContent(content);
 
 /**
- * Helper to create Wordle test scenarios
+ * Helper to create Wordle.cz test scenarios
  *
  * Usage:
  * testWordleScenario('Test name', [
@@ -271,7 +271,7 @@ testWordleScenario('SKOLA → PIRAT → NAPAD (blue A scenario)', [
 test('Green letter validation: conflicting letters at same position should be invalid', () => {
     // Mock scenario: User marks first word's first letter as 'S' green, 
     // then marks second word's first letter as 'P' green
-    // This is impossible in Wordle - same position can't have different green letters
+    // This is impossible in Wordle.cz - same position can't have different green letters
     
     const mockGrid = {
         querySelectorAll: () => [
@@ -340,7 +340,7 @@ test('Green letter validation: conflicting letters at same position should be in
 test('Green letter validation: same letter at different positions should be invalid', () => {
     // Mock scenario: User marks 'A' as green at position 4 in 2nd word,
     // then marks 'A' as green at position 0 in 4th word  
-    // This is impossible in Wordle - same letter can't be green at multiple positions
+    // This is impossible in Wordle.cz - same letter can't be green at multiple positions
     
     const mockGrid = {
         querySelectorAll: () => [

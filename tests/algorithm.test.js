@@ -1,4 +1,4 @@
-// Wordle algorithm tests using Node.js built-in test runner
+// Wordle.cz algorithm tests using Node.js built-in test runner
 // Run with: node --test algorithm.test.js
 
 import { test } from 'node:test';
@@ -288,7 +288,7 @@ test('should normalize all Czech diacritics', () => {
     });
 });
 
-test('should handle real Wordle scenario: PISEK -> SKARA -> SRNKA', () => {
+test('should handle real Wordle.cz scenario: PISEK -> SKARA -> SRNKA', () => {
     // Test words including the solution
     const testWordsStrings = ['srnka', 'pisek', 'skara', 'slova', 'sport'];
     const testWords = testWordsStrings.map(w => createWordMetadata(w));

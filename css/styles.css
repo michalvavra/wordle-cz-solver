@@ -1,4 +1,4 @@
-/* Wordle color scheme - KelpUI theme-aware */
+/* Wordle.cz color scheme - KelpUI theme-aware */
 :root, .kelp-theme-light {
     --wordle-gray: oklch(45% 0.005 0);
     --wordle-orange: oklch(75% 0.18 45);

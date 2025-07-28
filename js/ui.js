@@ -118,7 +118,7 @@ export class WordleUI {
     }
 
     /**
-     * Validate green letter constraints for Wordle rules
+     * Validate green letter constraints for Wordle.cz rules
      * @returns {boolean} True if valid, false if conflicting green letters exist
      */
     validateGreenLetters() {

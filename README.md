@@ -6,7 +6,7 @@ Web-based solver for the Czech version of [Wordle.cz](https://www.wordle.cz). He
 
 ## Features
 
-- **Interactive Grid**: Click letters to set colors based on Wordle feedback
+- **Interactive Grid**: Click letters to set colors based on Wordle.cz feedback
 - **Smart Algorithm**: Precise letter constraint handling with exact count enforcement
 - **Czech Word Database**: 2,863 words with diacritic normalization
 - **Real-time Suggestions**: Shows possible words as you add guesses
@@ -56,7 +56,7 @@ Alternatively, you can use any other static file server like Python's `http.serv
 
 ### Algorithm
 
-The solver uses a sophisticated constraint-checking algorithm that properly handles Wordle's letter counting rules:
+The solver uses a sophisticated constraint-checking algorithm that properly handles Wordle.cz's letter counting rules:
 
 - **Green letters**: Enforce exact count (if A is green, word has exactly that many A's)
 - **Blue letters**: Require minimum count (letter at position + appears elsewhere)

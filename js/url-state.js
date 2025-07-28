@@ -98,7 +98,7 @@ function parseWordState(slovo) {
 
 /**
  * Restores game state from URL parameters to grid
- * @param {Object} grid - Wordle grid element
+ * @param {Object} grid - Wordle.cz grid element
  * @param {Function} onError - Error callback (optional)
  * @returns {boolean} True if successfully restored, false otherwise
  */
