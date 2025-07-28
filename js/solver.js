@@ -55,29 +55,4 @@ export class WordleSolver {
         return this.wordMetadata.some(meta => meta.word === normalized);
     }
 
-    /**
-     * Score words based on letter frequency
-     * @deprecated Use getSuggestions instead
-     */
-    scoreWords(words) {
-        // Calculate letter frequency
-        const letterFreq = {};
-        for (const word of words) {
-            for (const letter of word.toLowerCase()) {
-                letterFreq[letter] = (letterFreq[letter] || 0) + 1;
-            }
-        }
-
-        // Score each word
-        const scoredWords = words.map(word => {
-            const uniqueLetters = new Set(word.toLowerCase());
-            const score = [...uniqueLetters].reduce((sum, letter) => 
-                sum + (letterFreq[letter] || 0), 0
-            );
-            return { word, score };
-        });
-
-        // Sort by score (highest first)
-        return scoredWords.sort((a, b) => b.score - a.score);
-    }
 }
