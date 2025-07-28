@@ -7,8 +7,9 @@ Web-based solver for the Czech version of [Wordle.cz](https://www.wordle.cz). He
 ## Features
 
 - **Interactive Grid**: Click letters to set colors based on Wordle feedback
-- **Smart Filtering**: Uses 2,863 Czech words with diacritic normalization
-- **Automatic Solving**: Shows suggestions as you add words
+- **Smart Algorithm**: Precise letter constraint handling with exact count enforcement
+- **Czech Word Database**: 2,863 words with diacritic normalization
+- **Real-time Suggestions**: Shows possible words as you add guesses
 - **URL Sharing**: Game state automatically saved in URL for easy sharing
 - **Mobile-Friendly**: Built with [KelpUI](https://kelpui.com) for responsive design
 - **No Build Tools**: Pure HTML/CSS/JavaScript
@@ -23,9 +24,9 @@ The Czech word list (`words.txt`) contains 2,863 five-letter words extracted fro
 2. Enter a 5-letter word and click "Přidat slovo"
 3. Click letters to set colors:
    - **Gray**: Letter not in word
-   - **Orange**: Letter in word, wrong position
-   - **Blue**: Letter in correct position, appears elsewhere
-   - **Green**: Letter in correct position, appears only here
+   - **Orange**: Letter in word, wrong position  
+   - **Blue**: Letter in correct position + appears elsewhere (minimum count)
+   - **Green**: Letter in correct position + exact count (no more instances)
 4. View suggestions in "Možná slova" section
 
 ## Development
@@ -53,10 +54,21 @@ Alternatively, you can use any other static file server like Python's `http.serv
 - **JavaScript**: ES6+ modules and features
 - **[KelpUI](https://kelpui.com)**: Lightweight CSS framework
 
+### Algorithm
+
+The solver uses a sophisticated constraint-checking algorithm that properly handles Wordle's letter counting rules:
+
+- **Green letters**: Enforce exact count (if A is green, word has exactly that many A's)
+- **Blue letters**: Require minimum count (letter at position + appears elsewhere)
+- **Mixed constraints**: Green takes precedence over orange/blue for count enforcement
+- **Czech normalization**: Handles diacritics correctly (`á` → `a`)
+
 ### Testing
 
+Run comprehensive test suites:
+
 ```bash
-node tests/algorithm.test.js
-node tests/integration.test.js
-node tests/wordle-scenarios.test.js
+node tests/algorithm.test.js         # Core algorithm (19 tests)
+node tests/wordle-scenarios.test.js  # Real-world scenarios (8 tests)
+node tests/integration.test.js       # Integration tests
 ```
