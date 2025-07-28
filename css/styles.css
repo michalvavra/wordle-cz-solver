@@ -18,6 +18,17 @@
 /* Custom utilities not covered by KelpUI */
 /* Note: .hidden replaced with [hidden] attribute, .visually-hidden available in KelpUI, .uppercase-input replaced with .text-uppercase */
 
+/* Copy URL link styling */
+#copy-url-btn {
+    color: var(--color-accent);
+    transition: color 0.2s ease;
+}
+
+#copy-url-btn:hover {
+    color: var(--color-accent-emphasis);
+    text-decoration: underline;
+}
+
 
 
 /* Custom grid layout for game */

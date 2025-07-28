@@ -57,14 +57,6 @@
 
         </section>
 
-        <div class="container-xl margin-start-xl margin-end-l">
-            <div class="cluster gap-s align-center">
-                <button type="button" class="outline secondary" id="copy-url-btn" disabled style="width: auto;">
-                    📋 Kopírovat URL
-                </button>
-                <span id="copy-feedback" class="small-text color-primary" hidden>URL zkopírováno!</span>
-            </div>
-        </div>
 
         <hr class="margin-start-xl margin-end-l">
 
@@ -107,7 +99,14 @@
     <hr class="margin-start-xl margin-end-xl">
 
     <footer class="container-xl margin-end-l">
-        <p style="text-align: center;">Vytvořeno pomocí <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a> a <a href="https://kelpui.com" target="_blank" rel="noopener">Kelp</a>. Zdrojový kód je na <a href="https://github.com/michalvavra/wordle-cz-solver" target="_blank" rel="noopener">GitHubu</a>.</p>
+        <div class="stack gap-s">
+            <p class="text-center">
+                <a href="#" id="copy-url-btn" class="small-text">
+                    Zkopírovat URL aktuálního stavu hry
+                </a>
+            </p>
+            <p class="text-center text-pretty">Vytvořeno pomocí <a href="https://claude.ai/code" target="_blank" rel="noopener">Claude Code</a> a <a href="https://kelpui.com" target="_blank" rel="noopener">Kelp</a>. Zdrojový kód je na <a href="https://github.com/michalvavra/wordle-cz-solver" target="_blank" rel="noopener">GitHubu</a>.</p>
+        </div>
     </footer>
 
     <script type="module" src="./js/app.js"></script>
