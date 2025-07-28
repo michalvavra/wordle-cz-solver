@@ -72,3 +72,35 @@ node tests/algorithm.test.js         # Core algorithm (19 tests)
 node tests/wordle-scenarios.test.js  # Real-world scenarios (8 tests)
 node tests/integration.test.js       # Integration tests
 ```
+
+### Deployment
+
+For production deployment with nginx (e.g., using Coolify):
+
+```nginx
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Security headers
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+
+    # Block sensitive files with 302 redirect to index
+    location ~* \.(md|png|jpg|jpeg|gif|json|lock|yml|yaml)$ {
+        return 302 /;
+    }
+
+    # Everything else returns index.html
+    location / {
+        try_files $uri /index.html;
+    }
+}
+```
+
+This configuration:
+- Serves the SPA correctly (all routes → index.html)
+- Blocks sensitive files (README, screenshots, etc.) with redirect
+- Includes essential security headers
