@@ -81,84 +81,190 @@ export async function loadWordsFromFile() {
 }
 
 /**
- * Checks if word matches all constraints
+ * Normalizes constraint objects by applying Czech text normalization
  */
-function matchesConstraints(wordMeta, constraints) {
-    const { chars, letterCounts } = wordMeta;
+function* normalizeConstraints(constraints) {
     const { green = {}, blue = {}, orange = {}, gray = new Set() } = constraints;
     
-    // Normalize constraints
-    const normalizedGreen = {};
-    const normalizedBlue = {};
-    const normalizedOrange = {};
-    const normalizedGray = new Set();
+    const normalizedGreen = Object.fromEntries(
+        Object.entries(green).map(([pos, letter]) => [pos, normalizeCzechText(letter)])
+    );
     
-    // Normalize all constraint letters
-    Object.entries(green).forEach(([pos, letter]) => {
-        normalizedGreen[pos] = normalizeCzechText(letter);
-    });
-    Object.entries(blue).forEach(([pos, letter]) => {
-        normalizedBlue[pos] = normalizeCzechText(letter);
-    });
-    Object.entries(orange).forEach(([letter, positions]) => {
-        normalizedOrange[normalizeCzechText(letter)] = positions;
-    });
-    [...gray].forEach(letter => {
-        normalizedGray.add(normalizeCzechText(letter));
-    });
+    const normalizedBlue = Object.fromEntries(
+        Object.entries(blue).map(([pos, letter]) => [pos, normalizeCzechText(letter)])
+    );
     
+    const normalizedOrange = Object.fromEntries(
+        Object.entries(orange).map(([letter, positions]) => [normalizeCzechText(letter), positions])
+    );
+    
+    const normalizedGray = new Set([...gray].map(letter => normalizeCzechText(letter)));
+    
+    yield { normalizedGreen, normalizedBlue, normalizedOrange, normalizedGray };
+}
+
+/**
+ * Generator for individual constraint checks
+ */
+function* checkConstraints(wordMeta, normalizedConstraints) {
+    const { chars, letterCounts } = wordMeta;
+    const { normalizedGreen, normalizedBlue, normalizedOrange, normalizedGray } = normalizedConstraints;
+    
+    yield* checkPositionConstraints(chars, normalizedGreen, normalizedBlue);
+    yield* checkOrangeConstraints(chars, letterCounts, normalizedOrange);
+    yield* checkLetterCountConstraints(letterCounts, normalizedGreen, normalizedBlue, normalizedOrange);
+    yield* checkGrayConstraints(letterCounts, normalizedGray, normalizedGreen, normalizedBlue, normalizedOrange);
+}
+
+/**
+ * Check green and blue position constraints
+ */
+function* checkPositionConstraints(chars, normalizedGreen, normalizedBlue) {
     // Check green letters (exact position)
     for (const [pos, letter] of Object.entries(normalizedGreen)) {
-        if (chars[pos] !== letter) return false;
+        if (chars[pos] !== letter) {
+            yield { valid: false, reason: `Green constraint failed: ${letter} not at position ${pos}` };
+            return;
+        }
     }
     
     // Check blue letters (correct position AND appears elsewhere)
     for (const [pos, letter] of Object.entries(normalizedBlue)) {
-        if (chars[pos] !== letter) return false;
-        if (letterCounts[letter] <= 1) return false;
+        if (chars[pos] !== letter) {
+            yield { valid: false, reason: `Blue position constraint failed: ${letter} not at position ${pos}` };
+            return;
+        }
     }
-    
-    // Check orange letters (in word but not at specified positions)
+}
+
+/**
+ * Check orange constraints (letter in word but not at specified positions)
+ */
+function* checkOrangeConstraints(chars, letterCounts, normalizedOrange) {
     for (const [letter, wrongPositions] of Object.entries(normalizedOrange)) {
-        if (!letterCounts[letter]) return false;
+        if (!letterCounts[letter]) {
+            yield { valid: false, reason: `Orange constraint failed: ${letter} not in word` };
+            return;
+        }
+        
         for (const pos of wrongPositions) {
-            if (chars[pos] === letter) return false;
+            if (chars[pos] === letter) {
+                yield { valid: false, reason: `Orange constraint failed: ${letter} at forbidden position ${pos}` };
+                return;
+            }
+        }
+    }
+}
+
+/**
+ * Check letter count constraints for green and blue letters
+ */
+function* checkLetterCountConstraints(letterCounts, normalizedGreen, normalizedBlue, normalizedOrange) {
+    const greenLetters = new Set(Object.values(normalizedGreen));
+    const blueLetters = new Set(Object.values(normalizedBlue));
+    const orangeLetters = new Set(Object.keys(normalizedOrange));
+    
+    // Check green letter counts (exact count)
+    for (const letter of greenLetters) {
+        const greenCount = Object.values(normalizedGreen).filter(l => l === letter).length;
+        const actualCount = letterCounts[letter] || 0;
+        
+        if (!blueLetters.has(letter) && !orangeLetters.has(letter)) {
+            // Pure green - exact count
+            if (actualCount !== greenCount) {
+                yield { valid: false, reason: `Green count constraint failed: ${letter} has ${actualCount}, expected ${greenCount}` };
+                return;
+            }
+        } else if (orangeLetters.has(letter) && !blueLetters.has(letter)) {
+            // Green + orange: Green overrides - exact count
+            if (actualCount !== greenCount) {
+                yield { valid: false, reason: `Green+orange count constraint failed: ${letter} has ${actualCount}, expected ${greenCount}` };
+                return;
+            }
         }
     }
     
-    // Check gray letters with special handling for mixed constraints
+    // Check blue letter counts (minimum count)
+    for (const letter of blueLetters) {
+        const blueCount = Object.values(normalizedBlue).filter(l => l === letter).length;
+        const actualCount = letterCounts[letter] || 0;
+        
+        // Blue means: appears at positions AND at least once elsewhere
+        if (actualCount <= blueCount) {
+            yield { valid: false, reason: `Blue count constraint failed: ${letter} has ${actualCount}, expected > ${blueCount}` };
+            return;
+        }
+    }
+}
+
+/**
+ * Check gray letter constraints
+ */
+function* checkGrayConstraints(letterCounts, normalizedGray, normalizedGreen, normalizedBlue, normalizedOrange) {
     const greenLetters = new Set(Object.values(normalizedGreen));
     const blueLetters = new Set(Object.values(normalizedBlue));
     const orangeLetters = new Set(Object.keys(normalizedOrange));
     
     for (const letter of normalizedGray) {
-        const isSpecial = greenLetters.has(letter) || 
-                         orangeLetters.has(letter) || 
-                         blueLetters.has(letter);
+        const isSpecial = greenLetters.has(letter) || orangeLetters.has(letter) || blueLetters.has(letter);
         
         if (!isSpecial && letterCounts[letter]) {
             // Letter is only gray - shouldn't appear at all
-            return false;
+            yield { valid: false, reason: `Gray constraint failed: ${letter} appears but should not` };
+            return;
         } else if (isSpecial) {
-            // Letter appears in other constraints - check exact count
+            // Letter appears in other constraints - calculate expected count
             let requiredCount = 0;
             
-            // Count appearances in green/blue positions
-            Object.values(normalizedGreen).forEach(l => {
-                if (l === letter) requiredCount++;
-            });
-            Object.values(normalizedBlue).forEach(l => {
-                if (l === letter) requiredCount++;
-            });
+            // Count green occurrences
+            if (greenLetters.has(letter)) {
+                requiredCount += Object.values(normalizedGreen).filter(l => l === letter).length;
+            }
             
-            // Orange means at least one occurrence
-            if (orangeLetters.has(letter)) {
+            // Count blue occurrences
+            if (blueLetters.has(letter)) {
+                requiredCount += Object.values(normalizedBlue).filter(l => l === letter).length;
+            }
+            
+            // Orange-only constraint
+            if (orangeLetters.has(letter) && !greenLetters.has(letter) && !blueLetters.has(letter)) {
                 requiredCount = Math.max(requiredCount, 1);
             }
             
-            if ((letterCounts[letter] || 0) !== requiredCount) {
-                return false;
+            // Handle mixed constraints
+            const actualCount = letterCounts[letter] || 0;
+            
+            if (greenLetters.has(letter) && !blueLetters.has(letter)) {
+                if (actualCount !== requiredCount) {
+                    yield { valid: false, reason: `Gray+green constraint failed: ${letter} has ${actualCount}, expected ${requiredCount}` };
+                    return;
+                }
+            } else if (blueLetters.has(letter) && !greenLetters.has(letter)) {
+                if (actualCount !== requiredCount) {
+                    yield { valid: false, reason: `Gray+blue constraint failed: ${letter} has ${actualCount}, expected ${requiredCount}` };
+                    return;
+                }
+            } else if (!greenLetters.has(letter) && !blueLetters.has(letter) && orangeLetters.has(letter)) {
+                if (actualCount !== requiredCount) {
+                    yield { valid: false, reason: `Gray+orange constraint failed: ${letter} has ${actualCount}, expected ${requiredCount}` };
+                    return;
+                }
             }
+        }
+    }
+}
+
+/**
+ * Checks if word matches all constraints
+ */
+function matchesConstraints(wordMeta, constraints) {
+    // Use generator to normalize constraints
+    const normalizedConstraints = normalizeConstraints(constraints).next().value;
+    
+    // Use generator to check all constraints
+    for (const result of checkConstraints(wordMeta, normalizedConstraints)) {
+        if (!result.valid) {
+            return false;
         }
     }
     
