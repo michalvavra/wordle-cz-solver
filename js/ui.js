@@ -97,22 +97,22 @@ export class WordleUI {
             await navigator.clipboard.writeText(shareableURL);
             
             // Show feedback
-            this.copyFeedback.classList.remove('hidden');
+            this.copyFeedback.hidden = false;
             this.copyFeedback.textContent = 'URL zkopírováno!';
             
             // Hide feedback after 2 seconds
             setTimeout(() => {
-                this.copyFeedback.classList.add('hidden');
+                this.copyFeedback.hidden = true;
             }, 2000);
             
         } catch (error) {
             console.error('Failed to copy URL:', error);
-            this.copyFeedback.classList.remove('hidden');
+            this.copyFeedback.hidden = false;
             this.copyFeedback.textContent = 'Chyba při kopírování URL';
             this.copyFeedback.style.color = 'var(--red-600)';
             
             setTimeout(() => {
-                this.copyFeedback.classList.add('hidden');
+                this.copyFeedback.hidden = true;
                 this.copyFeedback.style.color = '';
             }, 3000);
         }
@@ -151,6 +151,54 @@ export class WordleUI {
     }
 
     /**
+     * Validate green letter constraints for Wordle rules
+     * @returns {boolean} True if valid, false if conflicting green letters exist
+     */
+    validateGreenLetters() {
+        // Get all word rows to check for conflicts across words
+        const wordRows = [...this.grid.querySelectorAll('word-row')];
+        
+        // Track what letter is green at each position across all words
+        const positionLetters = {}; // position -> letter
+        
+        for (const wordRow of wordRows) {
+            const letterBoxes = wordRow.getLetterBoxes();
+            
+            for (let position = 0; position < letterBoxes.length; position++) {
+                const box = letterBoxes[position];
+                
+                if (box.stateString === 'green') {
+                    const letter = box.letter.toLowerCase();
+                    
+                    // Check if this position already has a different green letter
+                    if (positionLetters[position] && positionLetters[position] !== letter) {
+                        return false; // Different letters green at same position - invalid
+                    }
+                    
+                    // Check if this letter is already green at a different position
+                    for (const [pos, existingLetter] of Object.entries(positionLetters)) {
+                        if (parseInt(pos) !== position && existingLetter === letter) {
+                            return false; // Same letter green at different positions - invalid
+                        }
+                    }
+                    
+                    positionLetters[position] = letter;
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Show validation warning in the suggestion list
+     */
+    showValidationWarning() {
+        this.suggestionList.innerHTML = '<div class="callout warning" style="grid-column: 1 / -1;">Neplatná kombinace: Stejné písmeno nemůže být zelené na různých pozicích.</div>';
+        this.showMoreBtn.hidden = true;
+    }
+
+    /**
      * Display word suggestions using web components
      * @param {Array} suggestions - Array of suggested words
      */
@@ -167,8 +215,8 @@ export class WordleUI {
         this.suggestionList.innerHTML = '';
         
         if (this.allSuggestions.length === 0) {
-            this.suggestionList.innerHTML = '<p>Žádná slova nebyla nalezena.</p>';
-            this.showMoreBtn.classList.add('hidden');
+            this.suggestionList.innerHTML = '<div class="callout" style="grid-column: 1 / -1;">Žádná slova nebyla nalezena.</div>';
+            this.showMoreBtn.hidden = true;
         } else {
             const wordsToShow = this.allSuggestions.slice(0, this.displayLimit);
             
@@ -180,11 +228,11 @@ export class WordleUI {
             
             // Show/hide "show more" button
             if (this.allSuggestions.length > this.displayLimit) {
-                this.showMoreBtn.classList.remove('hidden');
+                this.showMoreBtn.hidden = false;
                 const remaining = this.allSuggestions.length - this.displayLimit;
                 this.showMoreBtn.textContent = `Zobrazit dalších ${remaining} slov`;
             } else {
-                this.showMoreBtn.classList.add('hidden');
+                this.showMoreBtn.hidden = true;
             }
         }
     }
@@ -229,7 +277,7 @@ export class WordleUI {
      * Show suggestions panel
      */
     showSuggestionsPanel() {
-        this.suggestionsSection.classList.remove('hidden');
+        this.suggestionsSection.hidden = false;
     }
     
     /**

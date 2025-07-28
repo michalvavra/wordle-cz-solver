@@ -80,6 +80,15 @@ class WordleApp {
     }
 
     async handleSolve() {
+        // Validate green letter constraints first
+        const isValid = this.ui.validateGreenLetters();
+        
+        if (!isValid) {
+            // Show validation warning instead of suggestions
+            this.ui.showValidationWarning();
+            return;
+        }
+        
         const constraints = this.ui.getConstraints();
         try {
             const suggestions = await this.solver.getSuggestions(constraints, 50);
