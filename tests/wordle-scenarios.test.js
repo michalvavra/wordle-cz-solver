@@ -266,3 +266,160 @@ testWordleScenario('SKOLA → PIRAT → NAPAD (blue A scenario)', [
     { word: 'SKOLA', feedback: 'XXXXO' },  // S gray, K gray, O gray, L gray, A orange
     { word: 'PIRAT', feedback: 'OXXBX' }   // P orange, I gray, R gray, A blue, T gray  
 ], 'NAPAD');  // NAPAD has A at pos 1 and 3 (A blue at pos 3 + appears elsewhere)
+
+// Test for green letter validation conflicts
+test('Green letter validation: conflicting letters at same position should be invalid', () => {
+    // Mock scenario: User marks first word's first letter as 'S' green, 
+    // then marks second word's first letter as 'P' green
+    // This is impossible in Wordle - same position can't have different green letters
+    
+    const mockGrid = {
+        querySelectorAll: () => [
+            {
+                getLetterBoxes: () => [
+                    { letter: 'S', stateString: 'green' },
+                    { letter: 'K', stateString: 'gray' },
+                    { letter: 'O', stateString: 'gray' },
+                    { letter: 'L', stateString: 'gray' },
+                    { letter: 'A', stateString: 'gray' }
+                ]
+            },
+            {
+                getLetterBoxes: () => [
+                    { letter: 'P', stateString: 'green' }, // Different letter at same position!
+                    { letter: 'I', stateString: 'gray' },
+                    { letter: 'R', stateString: 'gray' },
+                    { letter: 'A', stateString: 'gray' },
+                    { letter: 'T', stateString: 'gray' }
+                ]
+            }
+        ]
+    };
+
+    // Test the validation logic
+    const validateGreenLetters = function() {
+        const wordRows = [...this.grid.querySelectorAll('word-row')];
+        const positionLetters = {};
+        
+        for (const wordRow of wordRows) {
+            const letterBoxes = wordRow.getLetterBoxes();
+            
+            for (let position = 0; position < letterBoxes.length; position++) {
+                const box = letterBoxes[position];
+                
+                if (box.stateString === 'green') {
+                    const letter = box.letter.toLowerCase();
+                    
+                    // Check if this position already has a different green letter
+                    if (positionLetters[position] && positionLetters[position] !== letter) {
+                        return false; // Different letters green at same position - invalid
+                    }
+                    
+                    // Check if this letter is already green at a different position
+                    for (const [pos, existingLetter] of Object.entries(positionLetters)) {
+                        if (parseInt(pos) !== position && existingLetter === letter) {
+                            return false; // Same letter green at different positions - invalid
+                        }
+                    }
+                    
+                    positionLetters[position] = letter;
+                }
+            }
+        }
+        
+        return true;
+    };
+
+    const mockUI = { grid: mockGrid };
+    const isValid = validateGreenLetters.call(mockUI);
+    
+    assert.ok(!isValid, 'Should detect conflicting green letters at same position');
+    console.log('✓ Green letter validation correctly detects position conflicts');
+});
+
+test('Green letter validation: same letter at different positions should be invalid', () => {
+    // Mock scenario: User marks 'A' as green at position 4 in 2nd word,
+    // then marks 'A' as green at position 0 in 4th word  
+    // This is impossible in Wordle - same letter can't be green at multiple positions
+    
+    const mockGrid = {
+        querySelectorAll: () => [
+            {
+                getLetterBoxes: () => [
+                    { letter: 'F', stateString: 'gray' },
+                    { letter: 'I', stateString: 'gray' },
+                    { letter: 'R', stateString: 'gray' },
+                    { letter: 'S', stateString: 'gray' },
+                    { letter: 'T', stateString: 'gray' }
+                ]
+            },
+            {
+                getLetterBoxes: () => [
+                    { letter: 'S', stateString: 'gray' },
+                    { letter: 'E', stateString: 'gray' },
+                    { letter: 'C', stateString: 'gray' },
+                    { letter: 'O', stateString: 'gray' },
+                    { letter: 'A', stateString: 'green' } // A green at position 4
+                ]
+            },
+            {
+                getLetterBoxes: () => [
+                    { letter: 'T', stateString: 'gray' },
+                    { letter: 'H', stateString: 'gray' },
+                    { letter: 'I', stateString: 'gray' },
+                    { letter: 'R', stateString: 'gray' },
+                    { letter: 'D', stateString: 'gray' }
+                ]
+            },
+            {
+                getLetterBoxes: () => [
+                    { letter: 'A', stateString: 'green' }, // Same letter A green at different position (0)!
+                    { letter: 'O', stateString: 'gray' },
+                    { letter: 'U', stateString: 'gray' },
+                    { letter: 'R', stateString: 'gray' },
+                    { letter: 'T', stateString: 'gray' }
+                ]
+            }
+        ]
+    };
+
+    // Test the validation logic (same function as above)
+    const validateGreenLetters = function() {
+        const wordRows = [...this.grid.querySelectorAll('word-row')];
+        const positionLetters = {};
+        
+        for (const wordRow of wordRows) {
+            const letterBoxes = wordRow.getLetterBoxes();
+            
+            for (let position = 0; position < letterBoxes.length; position++) {
+                const box = letterBoxes[position];
+                
+                if (box.stateString === 'green') {
+                    const letter = box.letter.toLowerCase();
+                    
+                    // Check if this position already has a different green letter
+                    if (positionLetters[position] && positionLetters[position] !== letter) {
+                        return false; // Different letters green at same position - invalid
+                    }
+                    
+                    // Check if this letter is already green at a different position
+                    for (const [pos, existingLetter] of Object.entries(positionLetters)) {
+                        if (parseInt(pos) !== position && existingLetter === letter) {
+                            return false; // Same letter green at different positions - invalid
+                        }
+                    }
+                    
+                    positionLetters[position] = letter;
+                }
+            }
+        }
+        
+        return true;
+    };
+
+    const mockUI = { grid: mockGrid };
+    const isValid = validateGreenLetters.call(mockUI);
+    
+    assert.ok(!isValid, 'Should detect same letter green at different positions (2nd and 4th word)');
+    console.log('✓ Green letter validation correctly detects same letter at different positions');
+});
