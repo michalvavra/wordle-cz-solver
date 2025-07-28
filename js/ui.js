@@ -131,7 +131,7 @@ export class WordleUI {
      * Show validation warning in the suggestion list
      */
     showValidationWarning() {
-        this.suggestionList.innerHTML = '<div class="callout warning" style="grid-column: 1 / -1;">Neplatná kombinace: Stejné písmeno nemůže být zelené na různých pozicích.</div>';
+        this.suggestionList.innerHTML = '<div class="callout warning" style="grid-column: 1 / -1;">Neplatná kombinace: Zelená písmena na stejné pozici musí být stejná.</div>';
         this.showMoreBtn.hidden = true;
     }
 
