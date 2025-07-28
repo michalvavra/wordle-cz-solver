@@ -1,5 +1,7 @@
 // UI management for Wordle.cz Solver using Web Components
 import { normalizeCzechText } from './algorithm.js';
+import { validateWordInput, validateGreenLetterConstraints, validateWordAddition, normalizeAndValidateWord } from './validation.js';
+import { generateShareableUrl, restoreGameStateFromUrl, hasGameStateInUrl } from './url-state.js';
 
 export class WordleUI {
     constructor() {
@@ -10,7 +12,6 @@ export class WordleUI {
         this.suggestionsSection = document.getElementById('suggestions');
         this.showMoreBtn = document.getElementById('show-more-btn');
         this.copyUrlBtn = document.getElementById('copy-url-btn');
-        this.copyFeedback = document.getElementById('copy-feedback');
         this.solver = null; // Will be set by app
         this.allSuggestions = []; // Store all suggestions
         this.displayLimit = 10; // Initial display limit
@@ -48,8 +49,9 @@ export class WordleUI {
             this.#renderSuggestions();
         });
         
-        // Copy URL button click
-        this.copyUrlBtn.addEventListener('click', () => {
+        // Copy URL link click
+        this.copyUrlBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             this.#handleCopyUrl();
         });
     }
@@ -60,8 +62,10 @@ export class WordleUI {
      * @returns {boolean} Success status
      */
     addWord(word) {
-        if (!this.grid.canAddWord) {
-            this.wordInput.setCustomValidity('Maximální počet slov je 6!');
+        // Validate word addition
+        const additionResult = validateWordAddition(this.grid.words.length);
+        if (!additionResult.isValid) {
+            this.wordInput.setCustomValidity(additionResult.message);
             this.wordInput.reportValidity();
             return false;
         }
@@ -75,9 +79,6 @@ export class WordleUI {
                 this.pendingGreenPositions = null; // Clear after applying
             }
             
-            // Update copy button state
-            this.#updateCopyButton();
-            
             return true;
         } catch (error) {
             this.wordInput.setCustomValidity(error.message);
@@ -87,59 +88,25 @@ export class WordleUI {
     }
 
     /**
-     * Handle copy URL button click
+     * Handle copy URL link click
      */
     async #handleCopyUrl() {
         try {
             const shareableURL = this.#generateShareableURL();
-            
-            // Copy to clipboard
             await navigator.clipboard.writeText(shareableURL);
-            
-            // Show feedback
-            this.copyFeedback.hidden = false;
-            this.copyFeedback.textContent = 'URL zkopírováno!';
-            
-            // Hide feedback after 2 seconds
-            setTimeout(() => {
-                this.copyFeedback.hidden = true;
-            }, 2000);
-            
         } catch (error) {
             console.error('Failed to copy URL:', error);
-            this.copyFeedback.hidden = false;
-            this.copyFeedback.textContent = 'Chyba při kopírování URL';
-            this.copyFeedback.style.color = 'var(--red-600)';
-            
-            setTimeout(() => {
-                this.copyFeedback.hidden = true;
-                this.copyFeedback.style.color = '';
-            }, 3000);
         }
     }
     
-    /**
-     * Update copy button state based on game state
-     */
-    #updateCopyButton() {
-        const hasWords = this.grid.words.length > 0;
-        this.copyUrlBtn.disabled = !hasWords;
-    }
     
     /**
      * Generate shareable URL with current game state
      * @returns {string} Full shareable URL
      */
     #generateShareableURL() {
-        const slovoParams = this.serializeGameState();
-        const url = new URL(window.location.origin + window.location.pathname);
-        
-        // Add slovo parameters
-        slovoParams.forEach(slovo => {
-            url.searchParams.append('slovo', slovo);
-        });
-        
-        return url.toString();
+        const wordRows = [...this.grid.querySelectorAll('word-row')];
+        return generateShareableUrl(this.grid.words, wordRows);
     }
 
     /**
@@ -155,39 +122,9 @@ export class WordleUI {
      * @returns {boolean} True if valid, false if conflicting green letters exist
      */
     validateGreenLetters() {
-        // Get all word rows to check for conflicts across words
         const wordRows = [...this.grid.querySelectorAll('word-row')];
-        
-        // Track what letter is green at each position across all words
-        const positionLetters = {}; // position -> letter
-        
-        for (const wordRow of wordRows) {
-            const letterBoxes = wordRow.getLetterBoxes();
-            
-            for (let position = 0; position < letterBoxes.length; position++) {
-                const box = letterBoxes[position];
-                
-                if (box.stateString === 'green') {
-                    const letter = box.letter.toLowerCase();
-                    
-                    // Check if this position already has a different green letter
-                    if (positionLetters[position] && positionLetters[position] !== letter) {
-                        return false; // Different letters green at same position - invalid
-                    }
-                    
-                    // Check if this letter is already green at a different position
-                    for (const [pos, existingLetter] of Object.entries(positionLetters)) {
-                        if (parseInt(pos) !== position && existingLetter === letter) {
-                            return false; // Same letter green at different positions - invalid
-                        }
-                    }
-                    
-                    positionLetters[position] = letter;
-                }
-            }
-        }
-        
-        return true;
+        const result = validateGreenLetterConstraints(wordRows);
+        return result.isValid;
     }
 
     /**
@@ -247,27 +184,12 @@ export class WordleUI {
         // Clear any previous custom validity
         this.wordInput.setCustomValidity('');
         
-        if (word.length !== 5) {
-            this.wordInput.setCustomValidity('Slovo musí mít přesně 5 písmen!');
+        const result = await validateWordInput(word, this.solver);
+        
+        if (!result.isValid) {
+            this.wordInput.setCustomValidity(result.message);
             this.wordInput.reportValidity();
             return false;
-        }
-        
-        if (!/^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{5}$/.test(word)) {
-            this.wordInput.setCustomValidity('Slovo může obsahovat pouze česká písmena!');
-            this.wordInput.reportValidity();
-            return false;
-        }
-        
-        // Check if word exists in database
-        if (this.solver) {
-            const wordExists = await this.solver.wordExists(word);
-            
-            if (!wordExists) {
-                this.wordInput.setCustomValidity('Toto slovo není ve slovníku Wordle.cz');
-                this.wordInput.reportValidity();
-                return false;
-            }
         }
         
         return true;
@@ -337,76 +259,26 @@ export class WordleUI {
         });
     }
     
-    /**
-     * Serialize current game state to URL parameters
-     * @returns {Array} Array of slovo parameters
-     */
-    serializeGameState() {
-        const words = this.grid.words;
-        if (words.length === 0) return [];
-        
-        const wordRows = [...this.grid.querySelectorAll('word-row')];
-        const slovoParams = [];
-        
-        wordRows.forEach((row, index) => {
-            const word = words[index];
-            const letterBoxes = row.getLetterBoxes();
-            const states = letterBoxes.map(box => box.state.toString()).join('');
-            slovoParams.push(`${word}${states}`);
-        });
-        
-        return slovoParams;
-    }
     
     
     /**
      * Restore game state from URL parameters
      */
     restoreFromURL() {
-        const params = new URLSearchParams(window.location.search);
-        const slovoParams = params.getAll('slovo');
+        if (!hasGameStateInUrl()) return;
         
-        if (slovoParams.length === 0) return;
-        
-        // Clear current grid
-        this.grid.clear();
-        
-        // Parse and restore each word
-        slovoParams.forEach(slovo => {
-            if (slovo.length < 6) return; // Invalid format (5 letters + 5 states minimum)
-            
-            const word = slovo.slice(0, 5);
-            const states = slovo.slice(5);
-            
-            if (states.length !== 5) return; // Invalid state length
-            
-            try {
-                const wordRow = this.grid.addWord(word);
-                const letterBoxes = wordRow.getLetterBoxes();
-                
-                // Apply states
-                letterBoxes.forEach((box, index) => {
-                    const state = parseInt(states[index]);
-                    if (state >= 0 && state <= 3) {
-                        box.setAttribute('state', state.toString());
-                    }
-                });
-            } catch (error) {
-                console.warn('Failed to restore word:', word, error);
-            }
+        const restored = restoreGameStateFromUrl(this.grid, (error, word) => {
+            console.warn('Failed to restore word:', word, error);
         });
         
-        // Update copy button state
-        this.#updateCopyButton();
-        
-        // Show suggestions panel if we have words
-        if (slovoParams.length > 0) {
+        if (restored) {
+            // Show suggestions panel
             this.showSuggestionsPanel();
-        }
-        
-        // Trigger solver update if available
-        if (this.solver) {
-            this.#triggerSolverUpdate();
+            
+            // Trigger solver update if available
+            if (this.solver) {
+                this.#triggerSolverUpdate();
+            }
         }
     }
     
