@@ -1,40 +1,24 @@
-/* Wordle color scheme */
-:root {
-    --wordle-gray: oklch(50% 0.02 0);
-    --wordle-orange: oklch(70% 0.15 45);
-    --wordle-blue: oklch(60% 0.15 220);
-    --wordle-green: oklch(65% 0.15 150);
+/* Wordle color scheme - KelpUI theme-aware */
+:root, .kelp-theme-light {
+    --wordle-gray: oklch(45% 0.005 0);
+    --wordle-orange: oklch(75% 0.18 45);
+    --wordle-blue: oklch(65% 0.18 220);
+    --wordle-green: oklch(70% 0.18 150);
 }
 
-/* Utilities */
-.hidden {
-    display: none;
-}
-
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.uppercase-input {
-    text-transform: uppercase;
+/* Dark theme colors - optimized for visibility */
+.kelp-theme-dark {
+    --wordle-gray: oklch(35% 0.005 0);
+    --wordle-orange: oklch(80% 0.20 45);
+    --wordle-blue: oklch(75% 0.20 220);
+    --wordle-green: oklch(75% 0.20 150);
 }
 
 
-/* Color legend */
-.color-box {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius);
-    flex-shrink: 0;
-}
+/* Custom utilities not covered by KelpUI */
+/* Note: .hidden replaced with [hidden] attribute, .visually-hidden available in KelpUI, .uppercase-input replaced with .text-uppercase */
+
+
 
 /* Custom grid layout for game */
 .grid-m.gap-xl {
@@ -55,25 +39,3 @@
 }
 
 
-/* Suggestion container with grid layout */
-.suggestion-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
-    gap: var(--gap-xs);
-    width: 100%;
-}
-
-/* Ensure full width for grid items */
-.suggestion-container suggestion-item {
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-
-/* Empty state styling */
-.suggestion-container > p {
-    color: var(--gray-600);
-    font-style: italic;
-    grid-column: 1 / -1;
-    text-align: center;
-}

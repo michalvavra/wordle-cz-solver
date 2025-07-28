@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/kelpui@0.14.8/css/kelp.css">
     <link rel="stylesheet" href="./css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/kelpui@0.14.8/js/dark-mode-auto.js"></script>
 </head>
 <body>
     <main class="container-xl">
@@ -29,7 +30,7 @@
                             pattern="[a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]{5}"
                             required
                             aria-describedby="word-input-help"
-                            class="uppercase-input"
+                            class="text-uppercase"
                         />
                     </div>
                     <button type="button" class="primary" id="add-word-btn">
@@ -41,12 +42,12 @@
                     <div>
                         <wordle-grid id="wordle-grid"></wordle-grid>
                     </div>
-                    <div class="suggestions-panel hidden" id="suggestions" aria-live="polite">
+                    <div class="suggestions-panel" id="suggestions" aria-live="polite" hidden>
                         <h3>Možná slova</h3>
-                        <div class="suggestion-container" id="suggestion-list">
-                            <p>Přidejte slovo pro zobrazení návrhů</p>
+                        <div class="grid-auto" id="suggestion-list" style="--width: 4.5rem">
+                            <div class="callout" style="grid-column: 1 / -1;">Přidejte slovo pro zobrazení návrhů</div>
                         </div>
-                        <button type="button" class="outline primary hidden margin-start-s" id="show-more-btn" aria-label="Zobrazit další návrhy slov">
+                        <button type="button" class="outline primary margin-start-s margin-block-start-s" id="show-more-btn" aria-label="Zobrazit další návrhy slov" hidden>
                             Zobrazit více
                         </button>
                     </div>
@@ -61,7 +62,7 @@
                 <button type="button" class="outline secondary" id="copy-url-btn" disabled style="width: auto;">
                     📋 Kopírovat URL
                 </button>
-                <span id="copy-feedback" class="small-text color-primary hidden">URL zkopírováno!</span>
+                <span id="copy-feedback" class="small-text color-primary" hidden>URL zkopírováno!</span>
             </div>
         </div>
 
@@ -84,19 +85,19 @@
             <summary><strong>Význam barev</strong></summary>
             <div class="stack gap-s">
                 <div class="sidecar gap-s align-center">
-                    <div class="color-box" style="background-color: var(--wordle-gray);"></div>
+                    <div class="size-5xl" style="background-color: var(--wordle-gray); border-radius: var(--radius); flex-shrink: 0;"></div>
                     <span><strong>Šedá:</strong> Písmeno není ve slově vůbec</span>
                 </div>
                 <div class="sidecar gap-s align-center">
-                    <div class="color-box" style="background-color: var(--wordle-orange);"></div>
+                    <div class="size-5xl" style="background-color: var(--wordle-orange); border-radius: var(--radius); flex-shrink: 0;"></div>
                     <span><strong>Oranžová:</strong> Písmeno je ve slově, ale na jiné pozici</span>
                 </div>
                 <div class="sidecar gap-s align-center">
-                    <div class="color-box" style="background-color: var(--wordle-blue);"></div>
+                    <div class="size-5xl" style="background-color: var(--wordle-blue); border-radius: var(--radius); flex-shrink: 0;"></div>
                     <span><strong>Modrá:</strong> Písmeno je na správné pozici a vyskytuje se i jinde</span>
                 </div>
                 <div class="sidecar gap-s align-center">
-                    <div class="color-box" style="background-color: var(--wordle-green);"></div>
+                    <div class="size-5xl" style="background-color: var(--wordle-green); border-radius: var(--radius); flex-shrink: 0;"></div>
                     <span><strong>Zelená:</strong> Písmeno je na správné pozici a nikde jinde se nevyskytuje</span>
                 </div>
             </div>

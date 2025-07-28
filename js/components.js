@@ -25,37 +25,37 @@ class LetterBox extends HTMLElement {
                     font-size: 2rem;
                     font-weight: 700;
                     text-transform: uppercase;
-                    border: 2px solid var(--neutral-300);
+                    border: 2px solid var(--color-border-subtle, var(--neutral-300));
                     border-radius: 4px;
                     transition: all 0.2s ease;
                     cursor: pointer;
                     user-select: none;
-                    background-color: white;
-                    color: var(--neutral-900);
+                    background-color: var(--color-background-normal, white);
+                    color: var(--color-text-normal, var(--neutral-900));
                     box-sizing: border-box;
                 }
                 
                 :host(.gray) {
                     background-color: var(--wordle-gray);
-                    color: white;
+                    color: var(--color-text-inverse, white);
                     border-color: var(--wordle-gray);
                 }
                 
                 :host(.orange) {
                     background-color: var(--wordle-orange);
-                    color: white;
+                    color: var(--color-text-inverse, white);
                     border-color: var(--wordle-orange);
                 }
                 
                 :host(.blue) {
                     background-color: var(--wordle-blue);
-                    color: white;
+                    color: var(--color-text-inverse, white);
                     border-color: var(--wordle-blue);
                 }
                 
                 :host(.green) {
                     background-color: var(--wordle-green);
-                    color: white;
+                    color: var(--color-text-inverse, white);
                     border-color: var(--wordle-green);
                 }
                 
@@ -212,8 +212,8 @@ class SuggestionItem extends HTMLElement {
                     display: inline-block;
                     padding: 0.5rem 0.75rem;
                     text-align: center;
-                    background-color: var(--gray-100);
-                    border: 1px solid var(--gray-200);
+                    background-color: var(--color-background-elevation, var(--gray-100));
+                    border: 1px solid var(--color-border-subtle, var(--gray-200));
                     border-radius: var(--radius);
                     font-size: 0.875rem;
                     font-weight: 500;
@@ -221,16 +221,27 @@ class SuggestionItem extends HTMLElement {
                     transition: all 0.2s ease;
                     cursor: pointer;
                     user-select: none;
+                    color: var(--color-text-normal);
                 }
                 
                 :host(:hover) {
-                    background-color: var(--blue-50, #f0f9ff);
-                    border-color: var(--blue-200, #bfdbfe);
+                    background-color: var(--gray-200, #e5e7eb);
+                    border-color: var(--gray-400, #9ca3af);
+                    color: black;
+                }
+                
+                /* Dark mode hover */
+                @media (prefers-color-scheme: dark) {
+                    :host(:hover) {
+                        background-color: var(--gray-700, #374151);
+                        border-color: var(--gray-600, #4b5563);
+                        color: white;
+                    }
                 }
                 
                 :host(:active) {
-                    background-color: var(--blue-100, #dbeafe);
-                    border-color: var(--blue-300, #93c5fd);
+                    background-color: var(--color-accent-emphasis, var(--blue-100, #dbeafe));
+                    border-color: var(--color-accent, var(--blue-300, #93c5fd));
                 }
             </style>
             <slot></slot>
@@ -274,7 +285,7 @@ class WordleGrid extends HTMLElement {
                 .empty-letter-box {
                     width: 62px;
                     height: 62px;
-                    border: 2px solid var(--gray-200);
+                    border: 2px solid var(--color-border-muted, var(--gray-200));
                     border-radius: var(--radius);
                     box-sizing: border-box;
                     background-color: transparent;
