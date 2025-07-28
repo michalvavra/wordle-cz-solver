@@ -178,14 +178,14 @@ test('should handle case insensitivity in constraints - uppercase input', () => 
 
 test('should handle case insensitivity in constraints - mixed case', () => {
     const constraints = {
-        green: { 0: 'k', 2: 'A' }, // Mixed case
+        green: { 0: 'p', 2: 'A' }, // Mixed case - P at pos 0, A at pos 2
         blue: {},
         orange: {},
         gray: new Set()
     };
     
     const result = filterWords(testWords, constraints);
-    const expected = ['krava'];
+    const expected = ['plast']; // PLAST has P at pos 0, A at pos 2, and only one A
     
     assert.deepStrictEqual(result, expected, 'Should handle mixed case input');
 });

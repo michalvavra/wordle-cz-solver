@@ -251,3 +251,18 @@ testWordleScenario('PAREK → POSUK → POVYK', [
     { word: 'PAREK', feedback: 'GXXXG' },
     { word: 'POSUK', feedback: 'GGXXG' }
 ], 'POVYK');
+
+testWordleScenario('SKOLA → PIRAT → ZUPAN (green A issue)', [
+    { word: 'SKOLA', feedback: 'XXXXO' },  // S gray, K gray, O gray, L gray, A orange
+    { word: 'PIRAT', feedback: 'OXXGX' }   // P orange, I gray, R gray, A green, T gray
+], 'ZUPAN');
+
+// Additional tests for green letter exact count constraint
+testWordleScenario('Green letter should exclude multi-letter words', [
+    { word: 'TATKA', feedback: 'GXXXG' }   // T green at position 0, A green at pos 4 - but word has 2 T's
+], 'TEPNA');  // TEPNA has only one T (at position 0) and one A (at position 4)
+
+testWordleScenario('SKOLA → PIRAT → NAPAD (blue A scenario)', [
+    { word: 'SKOLA', feedback: 'XXXXO' },  // S gray, K gray, O gray, L gray, A orange
+    { word: 'PIRAT', feedback: 'OXXBX' }   // P orange, I gray, R gray, A blue, T gray  
+], 'NAPAD');  // NAPAD has A at pos 1 and 3 (A blue at pos 3 + appears elsewhere)
