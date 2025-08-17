@@ -61,7 +61,14 @@ function testWordleScenario(name, attempts, solution) {
                         constraints.orange[letter].push(pos);
                         break;
                     case 'X': // Gray
-                        constraints.gray.add(letter);
+                        // Only add to gray if not already in green, blue, or orange
+                        const inGreen = Object.values(constraints.green).includes(letter);
+                        const inBlue = Object.values(constraints.blue).includes(letter);
+                        const inOrange = Object.keys(constraints.orange).includes(letter);
+                        
+                        if (!inGreen && !inBlue && !inOrange) {
+                            constraints.gray.add(letter);
+                        }
                         break;
                 }
             });
@@ -151,8 +158,17 @@ function testScenario(attempts, solution) {
                     console.log(`   ~ ${letter.toUpperCase()} is in word but NOT at position ${pos + 1} (orange)`);
                     break;
                 case 'X':
-                    constraints.gray.add(letter);
-                    console.log(`   ✗ ${letter.toUpperCase()} is not in the word (gray)`);
+                    // Only add to gray if not already in green, blue, or orange
+                    const inGreen = Object.values(constraints.green).includes(letter);
+                    const inBlue = Object.values(constraints.blue).includes(letter);
+                    const inOrange = Object.keys(constraints.orange).includes(letter);
+                    
+                    if (!inGreen && !inBlue && !inOrange) {
+                        constraints.gray.add(letter);
+                        console.log(`   ✗ ${letter.toUpperCase()} is not in the word (gray)`);
+                    } else {
+                        console.log(`   ✗ ${letter.toUpperCase()} gray at position ${pos + 1} (but appears elsewhere)`);
+                    }
                     break;
             }
         });
@@ -336,6 +352,17 @@ test('Green letter validation: conflicting letters at same position should be in
     assert.ok(!isValid, 'Should detect conflicting green letters at same position');
     console.log('✓ Green letter validation correctly detects position conflicts');
 });
+
+testWordleScenario('RADLO → DEDIC → DUDEK (blue D becomes green D)', [
+    { word: 'RADLO', feedback: 'XXBXX' },  // R gray, A gray, D blue, L gray, O gray
+    { word: 'DEDIC', feedback: 'GOGXX' }   // D green, E orange, D green, I gray, C gray
+], 'DUDEK');
+
+testWordleScenario('PAREK → SALTO → ZALUD → HALDA (persistent blue A)', [
+    { word: 'PAREK', feedback: 'XBXXX' },  // P gray, A blue, R gray, E gray, K gray
+    { word: 'SALTO', feedback: 'XBGXX' },  // S gray, A blue, L green, T gray, O gray
+    { word: 'ZALUD', feedback: 'XBGXO' }   // Z gray, A blue, L green, U gray, D orange
+], 'HALDA');
 
 test('Green letter validation: same letter at different positions should be invalid', () => {
     // Mock scenario: User marks 'A' as green at position 4 in 2nd word,
