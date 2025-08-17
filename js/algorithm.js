@@ -210,11 +210,54 @@ function checkLetterCountConstraints(letterCounts, normalizedGreen, normalizedBl
             if (actualCount !== greenCount) {
                 return { valid: false, reason: `Green+orange count constraint failed: ${letter} has ${actualCount}, expected ${greenCount}` };
             }
+        } else if (blueLetters.has(letter)) {
+            // Green + blue: Need to check if they overlap
+            const blueCount = Object.values(normalizedBlue).filter(l => l === letter).length;
+            const greenPositions = Object.entries(normalizedGreen)
+                .filter(([_, l]) => l === letter)
+                .map(([pos, _]) => pos);
+            const bluePositions = Object.entries(normalizedBlue)
+                .filter(([_, l]) => l === letter)
+                .map(([pos, _]) => pos);
+            
+            // Check for position overlap
+            const overlappingPositions = bluePositions.filter(pos => greenPositions.includes(pos));
+            
+            if (overlappingPositions.length > 0) {
+                // Some positions overlap - those count once, others separately
+                const uniquePositions = new Set([...greenPositions, ...bluePositions]);
+                const minRequired = uniquePositions.size;
+                
+                // Since blue means "appears here AND elsewhere", we need at least one more
+                const hasNonOverlappingBlue = bluePositions.some(pos => !greenPositions.includes(pos));
+                if (hasNonOverlappingBlue) {
+                    // Non-overlapping blue needs extra occurrence
+                    if (actualCount < minRequired + 1) {
+                        return { valid: false, reason: `Green+blue count constraint failed: ${letter} has ${actualCount}, expected >= ${minRequired + 1}` };
+                    }
+                } else {
+                    // All blues overlap with greens - just need the positions
+                    if (actualCount < minRequired) {
+                        return { valid: false, reason: `Green+blue count constraint failed: ${letter} has ${actualCount}, expected >= ${minRequired}` };
+                    }
+                }
+            } else {
+                // No overlap - need green count + blue count + extra for blue
+                const minRequired = greenCount + blueCount;
+                if (actualCount < minRequired) {
+                    return { valid: false, reason: `Green+blue count constraint failed: ${letter} has ${actualCount}, expected >= ${minRequired}` };
+                }
+            }
         }
     }
     
     // Check blue letter counts (minimum count)
     for (const letter of blueLetters) {
+        // Skip if already handled in green section
+        if (greenLetters.has(letter)) {
+            continue;
+        }
+        
         const blueCount = Object.values(normalizedBlue).filter(l => l === letter).length;
         const actualCount = letterCounts[letter] || 0;
         
@@ -269,11 +312,41 @@ function checkGrayConstraints(letterCounts, normalizedGray, normalizedGreen, nor
             // Handle mixed constraints
             const actualCount = letterCounts[letter] || 0;
             
-            if (greenLetters.has(letter) && !blueLetters.has(letter)) {
+            if (greenLetters.has(letter) && blueLetters.has(letter)) {
+                // Both green and blue constraints
+                // Green positions are fixed, blue positions need at least one more occurrence
+                // So the total count should be at least greenCount + blueCount + 1
+                const greenCount = Object.values(normalizedGreen).filter(l => l === letter).length;
+                const blueCount = Object.values(normalizedBlue).filter(l => l === letter).length;
+                const minRequired = greenCount + blueCount;
+                
+                // Check if all blue positions overlap with green positions
+                const bluePositions = Object.entries(normalizedBlue)
+                    .filter(([_, l]) => l === letter)
+                    .map(([pos, _]) => pos);
+                const greenPositions = Object.entries(normalizedGreen)
+                    .filter(([_, l]) => l === letter)
+                    .map(([pos, _]) => pos);
+                
+                const hasOverlap = bluePositions.some(pos => greenPositions.includes(pos));
+                
+                if (hasOverlap) {
+                    // If blue and green overlap at same position, we need exactly the count
+                    if (actualCount !== minRequired) {
+                        return { valid: false, reason: `Gray+green+blue constraint failed: ${letter} has ${actualCount}, expected ${minRequired}` };
+                    }
+                } else {
+                    // Blue at different positions than green - need extra occurrences
+                    if (actualCount !== minRequired) {
+                        return { valid: false, reason: `Gray+green+blue constraint failed: ${letter} has ${actualCount}, expected ${minRequired}` };
+                    }
+                }
+            } else if (greenLetters.has(letter) && !blueLetters.has(letter)) {
                 if (actualCount !== requiredCount) {
                     return { valid: false, reason: `Gray+green constraint failed: ${letter} has ${actualCount}, expected ${requiredCount}` };
                 }
             } else if (blueLetters.has(letter) && !greenLetters.has(letter)) {
+                // Blue + gray means exactly the count of blue positions (no extra occurrences)
                 if (actualCount !== requiredCount) {
                     return { valid: false, reason: `Gray+blue constraint failed: ${letter} has ${actualCount}, expected ${requiredCount}` };
                 }
